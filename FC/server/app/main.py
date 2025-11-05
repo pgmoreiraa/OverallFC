@@ -3,6 +3,67 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
+# --- Mapeamento de IDs dos Jogadores ---
+PLAYER_IDS = {
+    # Overall 91
+    "mbappe": "231747", "salah": "209331", "putellas": "227203",
+    "bonmati": "241667", "rodri": "231866", "haaland": "239085",
+    
+    # Overall 90
+    "bellingham": "252371", "van dijk": "203376", "hansen": "227102",
+    "kane": "202126", "dembele": "231443", "messi": "158023",
+    "lewandowski": "188545", "de bruyne": "192985",
+    
+    # Overall 89
+    "vini jr": "238794", "alisson": "212831", "donnarumma": "230621",
+    "courtois": "192119", "lautaro martinez": "231478", "sophia smith": "264012",
+    "valverde": "239053", "hakimi": "235212", "yamal": "277643",
+    "kimmich": "212622", "mapi leon": "236479", "griezmann": "194765",
+    "ruben dias": "239818", "bruno fernandes": "212198", "bernardo silva": "218667",
+    "osimhen": "232293",
+    
+    # Overall 88
+    "saka": "246669", "rice": "234378", "odegaard": "222665",
+    "wirtz": "256630", "reiten": "227323", "katoto": "227361",
+    "diani": "227361", "ter stegen": "192448", "neuer": "167495",
+    "son": "200104", "musiala": "256790", "rafael leao": "241721",
+    "araujo": "253163", "de jong": "228702", "paralluelo": "269404",
+    "oberdorf": "248717", "debora": "226893",
+    
+    # Overall 87
+    "musah": "253177", "theo hernandez": "232656", "marquinhos": "207865",
+    "maignan": "215698", "kvaratskhelia": "247635", "foden": "237692",
+    "militao": "240130", "barella": "224232", "grealish": "206517",
+    "rodrygo": "243812", "dybala": "211110", "popp": "226302",
+    "morgan": "226301", "neymar": "190871", "pedri": "251854",
+    
+    # Overall 86
+    "tonali": "241096", "rashford": "231677", "gvardiol": "251517",
+    "gabriel": "246420", "saliba": "243715", "alexander-arnold": "231281",
+    "robertson": "216267", "gundogan": "186942", "cancelo": "210514",
+    "kounde": "241486", "tchouameni": "241637", "camavinga": "248243",
+    "nkunku": "232411", "diogo jota": "224458", "szoboszlai": "236772",
+    "bono": "226786", "kerr": "227125", "walsh": "242830",
+    
+    # Overall 85
+    "gimenez": "216460", "kostic": "208574", "trippier": "186345",
+    "luis diaz": "241084", "diaby": "241852", "coman": "213345",
+    "cristiano ronaldo": "20801", "gavi": "264240", "alaba": "197445",
+    "bremer": "239580", "vlahovic": "246430", "darwin nunez": "253072",
+    "isak": "233731", "bruno guimaraes": "247851", "julian alvarez": "246191",
+}
+
+# URLs base para imagens
+CARD_BACKGROUND_URL = "https://cdn3.futbin.com/content/fifa26/img/cards/hd/1_gold.png"
+PLAYER_IMAGE_BASE_URL = "https://cdn.futbin.com/content/fifa26/img/players/"
+
+def get_player_image_url(player_key):
+    """Retorna a URL da imagem do jogador"""
+    player_id = PLAYER_IDS.get(player_key.lower())
+    if player_id:
+        return f"{PLAYER_IMAGE_BASE_URL}{player_id}.png"
+    return None
+
 # --- Banco de Dados (Dicionário de Jogadores) ---
 PLAYERS_DB = {
     # Chave em minúsculo (para busca), dados com nome correto
@@ -117,6 +178,11 @@ PLAYERS_DB = {
     "julian alvarez": {"name": "Julián Álvarez", "overall": 85},
 }
 
+# Adicionar URLs de imagem a cada jogador
+for key in PLAYERS_DB:
+    PLAYERS_DB[key]["image_url"] = get_player_image_url(key)
+    PLAYERS_DB[key]["card_bg_url"] = CARD_BACKGROUND_URL
+
 # --- Normalização e Busca ---
 PLAYERS_BY_NAME_DB = {v["name"]: v for k, v in PLAYERS_DB.items()}
 
@@ -148,6 +214,7 @@ class ComparacaoRequest(BaseModel):
 def get_jogador_aleatorio():
     """
     Sorteia e retorna um jogador aleatório do banco de dados.
+    Agora inclui URLs de imagens.
     """
     nome_chave, dados = random.choice(list(PLAYERS_DB.items()))
     return dados
@@ -156,6 +223,7 @@ def get_jogador_aleatorio():
 def post_comparar(request: ComparacaoRequest):
     """
     Compara o palpite do usuário (jogador_b_input) com o jogador atual (jogador_a_nome).
+    Agora inclui URLs de imagens nas respostas.
     """
     jogador_a_nome = request.jogador_a_nome
     jogador_b_input_chave = request.jogador_b_input 
@@ -178,13 +246,19 @@ def post_comparar(request: ComparacaoRequest):
 
     if overall_b > overall_a:
         resultado = "correto"
+    elif overall_b == overall_a:
+        resultado = "empate"
     else:
         resultado = "incorreto"
+    
+    # 4. Gera um novo jogador aleatório para a próxima rodada
+    novo_jogador = random.choice(list(PLAYERS_DB.values()))
         
     return {
         "resultado": resultado,
         "jogador_a": jogador_a_dados,
         "jogador_b": jogador_b_dados,
+        "proximo_jogador": novo_jogador,
     }
 
 @app.get("/jogadores_nomes")
