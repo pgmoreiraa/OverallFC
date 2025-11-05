@@ -2,7 +2,9 @@
 
 Um jogo interativo onde você testa seus conhecimentos sobre os jogadores do EA FC 26! Adivinhe qual jogador tem o Overall maior e acumule pontos.
 
-![Python](https://img.shields.io/badge/Python-3.11-blue)![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green)![Streamlit](https://img.shields.io/badge/Streamlit-1.28-red)📋 Sobre o Projeto
+![Python](https://img.shields.io/badge/Python-3.11-blue)![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green)![Streamlit](https://img.shields.io/badge/Streamlit-1.28-red)
+
+📋 Sobre o Projeto
 
 OverallFC é um jogo divertido que desafia você a comparar jogadores do EA FC 26 baseado em seus atributos Overall. O jogo apresenta imagens reais dos jogadores e oferece uma experiência visual moderna e responsiva.
 
